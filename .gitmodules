@@ -1,0 +1,3 @@
+[submodule "lib/KiraFlux-Mono"]
+	path = lib/KiraFlux-Mono
+	url = https://github.com/KiraFlux/KiraFlux-Mono
