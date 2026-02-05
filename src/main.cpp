@@ -21,7 +21,7 @@ constexpr u16 COLOR_YELLOW = RED | GREEN;
 constexpr u16 COLOR_CYAN = GREEN | BLUE;
 constexpr u16 COLOR_MAGENTA = RED | BLUE;
 
-void render(Canvas<PixelFormat::RGB565> &canvas, int t) {
+void render(Canvas<kf::pixel::Rgb565> &canvas, int t) {
     float ft = static_cast<float>(t) * 0.06f;// Медленная анимация
 
     // Получаем размеры из canvas
@@ -53,14 +53,14 @@ void render(Canvas<PixelFormat::RGB565> &canvas, int t) {
 }
 
 void testOrientation(ST7735 &display) {
-    DynamicImage<PixelFormat::RGB565> display_image(
+    DynamicImage<kf::pixel::Rgb565> display_image(
         display.buffer().data(),
         display.width(),
         display.width(),
         display.height(),
         0, 0);
 
-    Canvas<PixelFormat::RGB565> canvas(display_image, fonts::gyver_5x7_en);
+    Canvas<kf::pixel::Rgb565> canvas(display_image, fonts::gyver_5x7_en);
 
     const Pixel width = canvas.width();
     const Pixel height = canvas.height();
@@ -101,7 +101,7 @@ void setup() {
     Serial.begin(115200);
     Serial.println("Starting");
 
-    static ST7735::Settings display_settings{
+    static ST7735::Config display_config{
         GPIO_NUM_5,
         GPIO_NUM_2,
         GPIO_NUM_15,
@@ -109,7 +109,7 @@ void setup() {
         ST7735::Orientation::Normal,
     };
 
-    static ST7735 display{display_settings, SPI};
+    static ST7735 display{display_config, SPI};
 
     (void) display.init();
 
