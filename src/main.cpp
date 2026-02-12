@@ -1,3 +1,4 @@
+#include <kf/drivers/display/SSD1306.hpp>
 #include <kf/drivers/display/ST7735.hpp>
 #include <kf/gfx.hpp>
 
@@ -21,21 +22,21 @@ constexpr u16 COLOR_YELLOW = RED | GREEN;
 constexpr u16 COLOR_CYAN = GREEN | BLUE;
 constexpr u16 COLOR_MAGENTA = RED | BLUE;
 
-using Col = ST7735::ColorType;
+using P = ST7735::PixelImpl;
 
-static kf::image::StaticImage<kf::pixel::Rgb565, 16, 16> test_static_image{};
+static kf::image::StaticImage<P, 16, 16> test_static_image{};
 
-void render(Canvas<kf::pixel::Rgb565> &canvas, int t) {
+void render(Canvas<P> &canvas, int t) {
     float ft = static_cast<float>(t) * 0.06f;// Медленная анимация
 
     // Получаем размеры из canvas
-    const Pixel centerX = canvas.centerX();
-    const Pixel centerY = canvas.centerY();
+    const Pixels centerX = canvas.centerX();
+    const Pixels centerY = canvas.centerY();
 
     // Простая анимация - движущийся круг
-    auto circle_x = static_cast<Pixel>(centerX + centerX * sinf(ft));
-    auto circle_y = static_cast<Pixel>(centerY + centerY * cosf(ft));
-    auto radius = static_cast<Pixel>(9 + 6 * sinf(ft * 2));
+    auto circle_x = static_cast<Pixels>(centerX + centerX * sinf(ft));
+    auto circle_y = static_cast<Pixels>(centerY + centerY * cosf(ft));
+    auto radius = static_cast<Pixels>(9 + 6 * sinf(ft * 2));
 
     // Цвет меняется со временем
     u16 r = static_cast<u16>(63 * (0.5f + 0.5f * sinf(ft)));
@@ -59,18 +60,11 @@ void render(Canvas<kf::pixel::Rgb565> &canvas, int t) {
 }
 
 void testOrientation(ST7735 &display) {
+    image::DynamicImage<P> display_image{display.image()};
+    Canvas<P> canvas(display_image, fonts::gyver_5x7_en);
 
-    image::DynamicImage<kf::pixel::Rgb565> display_image(
-        display.image().buffer(),
-        display.image().width(),
-        display.image().width(),
-        display.image().height(),
-        0, 0);
-
-    Canvas<kf::pixel::Rgb565> canvas(display_image, fonts::gyver_5x7_en);
-
-    const Pixel width = canvas.width();
-    const Pixel height = canvas.height();
+    const Pixels width = canvas.width();
+    const Pixels height = canvas.height();
     char buffer[32];
 
     auto [a, b] = canvas.split<2>({1, 2}, true);
@@ -121,7 +115,7 @@ void setup() {
     (void) display.init();
 
     for (auto i = 0; i < test_static_image.buffer().size(); i += 1) {
-        test_static_image.buffer()[i] = kf::gfx::ColorPalette<kf::pixel::Rgb565>::getAnsiColor(static_cast<kf::gfx::ColorPalette<kf::pixel::Rgb565>::Ansi>(i));
+        test_static_image.buffer()[i] = kf::gfx::Palette<P>::getAnsiColor(static_cast<kf::gfx::Palette<P>::Ansi>(i));
     }
 
     for (int i = 0; i < 100; i += 1) {
