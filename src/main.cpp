@@ -21,6 +21,8 @@ constexpr u16 COLOR_YELLOW = RED | GREEN;
 constexpr u16 COLOR_CYAN = GREEN | BLUE;
 constexpr u16 COLOR_MAGENTA = RED | BLUE;
 
+using Col = ST7735::ColorType;
+
 static kf::image::StaticImage<kf::pixel::Rgb565, 16, 16> test_static_image{};
 
 void render(Canvas<kf::pixel::Rgb565> &canvas, int t) {
@@ -57,11 +59,12 @@ void render(Canvas<kf::pixel::Rgb565> &canvas, int t) {
 }
 
 void testOrientation(ST7735 &display) {
+
     image::DynamicImage<kf::pixel::Rgb565> display_image(
-        display.buffer(),
-        display.width(),
-        display.width(),
-        display.height(),
+        display.image().buffer(),
+        display.image().width(),
+        display.image().width(),
+        display.image().height(),
         0, 0);
 
     Canvas<kf::pixel::Rgb565> canvas(display_image, fonts::gyver_5x7_en);
