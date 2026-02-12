@@ -21,6 +21,8 @@ constexpr u16 COLOR_YELLOW = RED | GREEN;
 constexpr u16 COLOR_CYAN = GREEN | BLUE;
 constexpr u16 COLOR_MAGENTA = RED | BLUE;
 
+static kf::image::StaticImage<kf::pixel::Rgb565, 16, 16> test_static_image{};
+
 void render(Canvas<kf::pixel::Rgb565> &canvas, int t) {
     float ft = static_cast<float>(t) * 0.06f;// Медленная анимация
 
@@ -29,8 +31,8 @@ void render(Canvas<kf::pixel::Rgb565> &canvas, int t) {
     const Pixel centerY = canvas.centerY();
 
     // Простая анимация - движущийся круг
-    auto circle_x = static_cast<Pixel>(centerX + centerX * 0.2f * sinf(ft));
-    auto circle_y = static_cast<Pixel>(centerY + centerY * 0.2f * cosf(ft));
+    auto circle_x = static_cast<Pixel>(centerX + centerX * sinf(ft));
+    auto circle_y = static_cast<Pixel>(centerY + centerY * cosf(ft));
     auto radius = static_cast<Pixel>(9 + 6 * sinf(ft * 2));
 
     // Цвет меняется со временем
@@ -50,11 +52,13 @@ void render(Canvas<kf::pixel::Rgb565> &canvas, int t) {
 
     canvas.setForeground(COLOR_MAGENTA);
     canvas.line(centerX, centerY, circle_x, circle_y);
+
+    canvas.image(circle_x, circle_y, test_static_image);
 }
 
 void testOrientation(ST7735 &display) {
-    DynamicImage<kf::pixel::Rgb565> display_image(
-        display.buffer().data(),
+    image::DynamicImage<kf::pixel::Rgb565> display_image(
+        display.buffer(),
         display.width(),
         display.width(),
         display.height(),
@@ -70,7 +74,7 @@ void testOrientation(ST7735 &display) {
 
     auto [c, d] = b.split<2>({2, 3}, false);
 
-    const auto frames_total = 100;
+    const auto frames_total = 1000;
     const auto start = millis();// Capture the start time at the beginning of the frame loop.
 
     for (int t = 0; t < frames_total; t += 1) {
@@ -78,11 +82,11 @@ void testOrientation(ST7735 &display) {
 
         render(a, t / 2);
         render(c, t * 2);
-        render(d, t * 3);
+        render(d, t / 10);
 
         // Display text
         canvas.setForeground(COLOR_WHITE);
-        snprintf(buffer, sizeof(buffer), "Frame: \x83\xfc\x1f%d\x80\nSize: \x83\x3f\xff%dx%d", t, width, height);
+        snprintf(buffer, sizeof(buffer), "Frame: \xF3%d\x80\nSize: \xB1\xF2%dx%d", t, width, height);
         canvas.text(5, 5, buffer);
 
         display.send();
@@ -112,6 +116,10 @@ void setup() {
     static ST7735 display{display_config, SPI};
 
     (void) display.init();
+
+    for (auto i = 0; i < test_static_image.buffer().size(); i += 1) {
+        test_static_image.buffer()[i] = kf::gfx::ColorPalette<kf::pixel::Rgb565>::getAnsiColor(static_cast<kf::gfx::ColorPalette<kf::pixel::Rgb565>::Ansi>(i));
+    }
 
     for (int i = 0; i < 100; i += 1) {
         for (auto o: {
